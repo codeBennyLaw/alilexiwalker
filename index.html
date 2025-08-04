@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AliLexiWalker的个人主页</title>
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36BFFA',
+                        accent: '#7B61FF',
+                        dark: {
+                            100: '#1E293B',
+                            200: '#0F172A',
+                            300: '#020617'
+                        }
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto { content-visibility: auto; }
+            .glass { @apply bg-white/10 dark:bg-dark-100/50 backdrop-blur-lg border border-white/20 dark:border-dark-100/30 rounded-xl shadow-lg; }
+            .glass-btn { @apply bg-white/20 dark:bg-dark-100/30 backdrop-blur-md hover:bg-white/30 dark:hover:bg-dark-100/50 transition-all duration-300 rounded-lg p-2; }
+            .skill-bar { @apply h-2 rounded-full bg-gray-200 dark:bg-dark-100 overflow-hidden; }
+            .skill-progress { @apply h-full bg-gradient-to-r from-primary to-accent transition-all duration-1000 ease-out; }
+            .tag { @apply px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary dark:bg-primary/20 transition-all duration-300 hover:scale-105; }
+            .card-hover { @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1; }
+            
+            /* 侧边访客信息样式 */
+            .sidebar-container {
+                @apply fixed top-1/2 -translate-y-1/2 right-0 z-50 flex items-center transition-all duration-300;
+            }
+            .sidebar-btn {
+                @apply glass p-3 rounded-l-xl rounded-r-none cursor-pointer shadow-lg z-10;
+            }
+            .sidebar-content {
+                @apply glass p-4 rounded-l-xl shadow-xl transform translate-x-full transition-transform duration-300;
+            }
+            .sidebar-expanded .sidebar-content {
+                @apply translate-x-0;
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="font-inter bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-dark-200 dark:to-dark-300 min-h-screen text-gray-800 dark:text-gray-100 transition-colors duration-300">
+
+    <!-- 侧边访客信息组件 -->
+    <div class="sidebar-container" id="visitorSidebar">
+        <div class="sidebar-content">
+            <div class="box pcbdmapss">
+                <div class="change-type">
+                    <div class="type-left">
+                        <ul>
+                            <li class="hufake" style="text-align: center; height: 250px;">
+                                <!-- 访客信息图片 -->
+                                <img src="https://api.cenguigui.cn/api/ipqmd" alt="访客地区分布"
+                                    class="h-full w-auto object-contain">
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="type-right">
+                        <p class="guigui flex items-center text-sm">
+                            <i class="fa fa-address-card-o mr-2 text-primary"></i>
+                            <span class="lang-zh">访客地区分布</span>
+                            <span class="lang-en hidden">Visitor Distribution</span>
+                            <span class="lang-jp hidden">訪問者分布</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-btn" id="sidebarToggle">
+            <i class="fa fa-users text-primary text-xl"></i>
+        </div>
+    </div>
+
+    <!-- 页头：固定在顶部，包含语言切换和主题切换功能 -->
+    <header class="sticky top-0 z-40 glass px-4 md:px-8 py-3 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-primary">
+                <span class="lang-zh">AliLexiWalker</span>
+                <span class="lang-en hidden">AliLexiWalker</span>
+                <span class="lang-jp hidden">アリレクシーウォーカー</span>
+            </h1>
+
+            <div class="flex gap-2 md:gap-4 items-center">
+                <!-- 语言切换按钮组 -->
+                <div class="flex gap-1">
+                    <button id="lang-zh" class="glass-btn text-sm md:text-base">
+                        <span class="lang-zh">中</span>
+                        <span class="lang-en hidden">CN</span>
+                        <span class="lang-jp hidden">中国語</span>
+                    </button>
+                    <button id="lang-en" class="glass-btn text-sm md:text-base">
+                        <span class="lang-zh">英</span>
+                        <span class="lang-en hidden">EN</span>
+                        <span class="lang-jp hidden">英語</span>
+                    </button>
+                    <button id="lang-jp" class="glass-btn text-sm md:text-base">
+                        <span class="lang-zh">日</span>
+                        <span class="lang-en hidden">JP</span>
+                        <span class="lang-jp hidden">日本語</span>
+                    </button>
+                </div>
+
+                <!-- 昼夜模式切换按钮 -->
+                <button id="theme-toggle" class="glass-btn">
+                    <i class="fa fa-sun-o text-yellow-500 dark:hidden"></i>
+                    <i class="fa fa-moon-o text-blue-200 hidden dark:inline"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="container mx-auto px-4 md:px-8 pb-16">
+        <!-- 第一行卡片：个人信息 + 状态信息 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-fade-in">
+            <!-- 个人信息卡片 -->
+            <div class="glass p-6 md:p-8 card-hover">
+                <div class="flex flex-col items-center text-center">
+                    <div class="relative mb-4">
+                        <img src="http://q1.qlogo.cn/g?b=qq&nk=1018273986&s=100" alt="AliLexiWalker的头像"
+                            class="w-36 h-36 rounded-full object-cover border-4 border-primary/30">
+                        <div
+                            class="absolute -bottom-1 -right-1 bg-green-500 rounded-full w-8 h-8 border-2 border-white dark:border-dark-100 flex items-center justify-center">
+                            <span class="lang-zh text-white text-xs">在线</span>
+                            <span class="lang-en text-white text-xs hidden">Online</span>
+                            <span class="lang-jp text-white text-xs hidden">オンライン</span>
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl font-bold mb-1">AliLexiWalker</h2>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        <span class="lang-zh">软件工程专业 · 大学生</span>
+                        <span class="lang-en hidden">Software Engineering · University Student</span>
+                        <span class="lang-jp hidden">ソフトウェアエンジニアリング学科 · 大学生</span>
+                    </p>
+
+                    <div class="w-full grid grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                <span class="lang-zh">学习时长</span>
+                                <span class="lang-en hidden">Study Time</span>
+                                <span class="lang-jp hidden">学習期間</span>
+                            </p>
+                            <p class="text-lg font-semibold">7+ <span class="lang-zh">年</span><span
+                                    class="lang-en hidden">years</span><span class="lang-jp hidden">年</span></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                <span class="lang-zh">项目经验</span>
+                                <span class="lang-en hidden">Projects</span>
+                                <span class="lang-jp hidden">プロジェクト経験</span>
+                            </p>
+                            <p class="text-lg font-semibold">10+</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 状态信息卡片 -->
+            <div class="glass p-6 md:p-8 card-hover">
+                <div class="space-y-6">
+                    <!-- 当前时间 -->
+                    <div class="text-center">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                            <span class="lang-zh">当前时间</span>
+                            <span class="lang-en hidden">Current Time</span>
+                            <span class="lang-jp hidden">現在の時間</span>
+                        </p>
+                        <p id="current-time" class="text-3xl md:text-4xl font-mono font-bold"></p>
+                    </div>
+
+                    <!-- 城市和天气 -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                                <span class="lang-zh">城市与天气</span>
+                                <span class="lang-en hidden">City & Weather</span>
+                                <span class="lang-jp hidden">都市と天気</span>
+                            </p>
+                            <p id="city-weather" class="text-lg font-medium">
+                                <span class="lang-zh">加载中...</span>
+                                <span class="lang-en hidden">Loading...</span>
+                                <span class="lang-jp hidden">読み込み中...</span>
+                            </p>
+                        </div>
+                        <div id="weather-icon" class="text-4xl"></div>
+                    </div>
+
+                    <!-- 浏览器和IP信息 -->
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                            <span class="lang-zh">浏览器与IP</span>
+                            <span class="lang-en hidden">Browser & IP</span>
+                            <span class="lang-jp hidden">ブラウザとIP</span>
+                        </p>
+                        <p id="browser-info" class="text-sm md:text-base font-medium break-all">
+                            <span class="lang-zh">加载中...</span>
+                            <span class="lang-en hidden">Loading...</span>
+                            <span class="lang-jp hidden">読み込み中...</span>
+                        </p>
+                        <p id="ip-address" class="text-sm md:text-base mt-1">
+                            <span class="lang-zh">IP: 加载中...</span>
+                            <span class="lang-en hidden">IP: Loading...</span>
+                            <span class="lang-jp hidden">IP: 読み込み中...</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 其他卡片 -->
+        <div class="space-y-6">
+            <!-- 原有网格卡片组 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- 编程经历卡片 -->
+                <div class="glass p-6 md:p-8 col-span-1 md:col-span-2 card-hover animate-slide-up"
+                    style="animation-delay: 0.1s">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fa fa-code text-primary mr-2"></i>
+                        <span class="lang-zh">编程经历</span>
+                        <span class="lang-en hidden">Programming Experience</span>
+                        <span class="lang-jp hidden">プログラミング経験</span>
+                    </h3>
+
+                    <div class="space-y-6">
+                        <div
+                            class="relative pl-6 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-primary/30">
+                            <div class="absolute -left-[7px] top-1 w-3 h-3 rounded-full bg-primary"></div>
+                            <h4 class="font-semibold">
+                                <span class="lang-zh">小学时期</span>
+                                <span class="lang-en hidden">Primary School</span>
+                                <span class="lang-jp hidden">小学生の頃</span>
+                            </h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                <span class="lang-zh">接触电脑游戏，为了研究电脑密码，开始对编程产生兴趣</span>
+                                <span class="lang-en hidden">Got into computer games and developed an interest in
+                                    programming while trying to figure out computer passwords</span>
+                                <span class="lang-jp hidden">コンピュータゲームに触れ、パスワードを研究する中でプログラミングに興味を持ち始めた</span>
+                            </p>
+                        </div>
+
+                        <div
+                            class="relative pl-6 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-primary/30">
+                            <div class="absolute -left-[7px] top-1 w-3 h-3 rounded-full bg-primary"></div>
+                            <h4 class="font-semibold">
+                                <span class="lang-zh">初中时期</span>
+                                <span class="lang-en hidden">Middle School</span>
+                                <span class="lang-jp hidden">中学生の頃</span>
+                            </h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                <span class="lang-zh">开始学习网页三件套，期间还短暂入坑python（导致现在基本不会）</span>
+                                <span class="lang-en hidden">Started learning HTML, CSS and JavaScript. Briefly dabbled
+                                    in
+                                    Python (but barely remember it now)</span>
+                                <span
+                                    class="lang-jp hidden">Web三兄弟（HTML、CSS、JavaScript）を学び始め、期間中Pythonにも一時的にはまったが、今ではほとんど忘れてしまった</span>
+                            </p>
+                        </div>
+
+                        <div
+                            class="relative pl-6 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-primary/30">
+                            <div class="absolute -left-[7px] top-1 w-3 h-3 rounded-full bg-primary"></div>
+                            <h4 class="font-semibold">
+                                <span class="lang-zh">高中时期</span>
+                                <span class="lang-en hidden">High School</span>
+                                <span class="lang-jp hidden">高校生の頃</span>
+                            </h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                <span
+                                    class="lang-zh">因机缘巧合被同为信息课代表的朋友拉去接触了信息学奥赛，也就是我们常说的oi，自学了两三个月参加22年的csp-j/s，有且仅有第一轮，因为被疫情给封校了，也很遗憾结束了短暂的ois生涯回复文化课，但仍在自学c++，也为大学的计算机之路做下了铺垫</span>
+                                <span class="lang-en hidden">By chance, I was introduced to the Olympiad in Informatics (OI) by a friend who was also a computer class
+                                representative. After self-studying for two to three months, I participated in the 2022 CSP-J/S competition, but only
+                                made it to the first round. Due to the pandemic, the school was closed, and I regrettably ended my short OI journey to
+                                return to core academic subjects. However, I continued to self-learn C++, which laid the groundwork for my computer
+                                science studies in university</span>
+                                <span
+                                    class="lang-jp hidden">偶然の機会で、同じ情報の学級委員だった友達に情報オリンピッド（OI）に誘われました。2～3 か月間自習した後、2022 年の CSP-J/S に参加しましたが、一回戦しか進めませんでした。コロナウイルスの影響で学校が閉鎖されたため、短い
+                                    OI 人生を惜しみながら文化課に戻りました。しかし、C++ の自習を続けており、これが大学でのコンピュータサイエンスの学習の基礎となりました</span>
+                            </p>
+                        </div>
+
+                        <div class="relative pl-6">
+                            <div class="absolute -left-[7px] top-1 w-3 h-3 rounded-full bg-primary"></div>
+                            <h4 class="font-semibold">
+                                <span class="lang-zh">大学时期</span>
+                                <span class="lang-en hidden">University</span>
+                                <span class="lang-jp hidden">大学生の頃</span>
+                            </h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                <span class="lang-zh">现在是某二本大学软工大二生，开发项目的同时为acm校队出一份力中......</span>
+                                <span class="lang-en hidden">Currently a sophomore majoring in Software Engineering at a
+                                    second-tier university. Developing projects while contributing to the school's ACM
+                                    team...</span>
+                                <span
+                                    class="lang-jp hidden">現在は二本大学のソフトウェアエンジニアリング学科の二年生で、プロジェクト開発をしながら、ACMの学校チームに貢献している最中......</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 语言技能卡片 -->
+                <div class="glass p-6 md:p-8 card-hover animate-slide-up" style="animation-delay: 0.2s">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fa fa-cogs text-primary mr-2"></i>
+                        <span class="lang-zh">语言技能</span>
+                        <span class="lang-en hidden">Programming Skills</span>
+                        <span class="lang-jp hidden">プログラミングスキル</span>
+                    </h3>
+
+                    <div class="space-y-5">
+                        <div>
+                            <div class="flex justify-between mb-1"><span>HTML</span><span>60%</span></div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 0%" data-width="60%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><span>JavaScript</span><span>35%</span></div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 0%" data-width="35%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><span>CSS</span><span>35%</span></div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 0%" data-width="35%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><span>C/C++</span><span>50%</span></div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 0%" data-width="50%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><span>Python</span><span>20%</span></div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 0%" data-width="20%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><span>Java</span><span>15%</span></div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 0%" data-width="15%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 兴趣爱好卡片 -->
+                <div class="glass p-6 md:p-8 card-hover animate-slide-up" style="animation-delay: 0.3s">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fa fa-heart text-primary mr-2"></i>
+                        <span class="lang-zh">兴趣爱好</span>
+                        <span class="lang-en hidden">Interests</span>
+                        <span class="lang-jp hidden">趣味</span>
+                    </h3>
+
+                    <div class="flex flex-wrap gap-3">
+                        <span class="tag"><span class="lang-zh">编程</span><span
+                                class="lang-en hidden">Programming</span><span
+                                class="lang-jp hidden">プログラミング</span></span>
+                        <span class="tag"><span class="lang-zh">音乐</span><span class="lang-en hidden">Music</span><span
+                                class="lang-jp hidden">音楽</span></span>
+                        <span class="tag"><span class="lang-zh">音游</span><span class="lang-en hidden">Rhythm
+                                Games</span><span class="lang-jp hidden">リズムゲーム</span></span>
+                        <span class="tag"><span class="lang-zh">健身</span><span
+                                class="lang-en hidden">Fitness</span><span class="lang-jp hidden">フィットネス</span></span>
+                        <span class="tag"><span class="lang-zh">跑步</span><span
+                                class="lang-en hidden">Running</span><span class="lang-jp hidden">ランニング</span></span>
+                        <span class="tag"><span class="lang-zh">二次元</span><span class="lang-en hidden">Anime</span><span
+                                class="lang-jp hidden">二次元</span></span>
+                    </div>
+
+                    <div class="mt-6"><canvas id="interests-chart" width="400" height="250"></canvas></div>
+                </div>
+            </div>
+
+            <!-- 新的自适应卡片组（随机图片 + 联系方式） -->
+            <div class="flex flex-wrap gap-6">
+                <!-- 随机图片卡片（高度固定，宽度自适应） -->
+                <div class="glass p-0 card-hover animate-slide-up"
+                    style="animation-delay: 0.4s; height: 450px; min-height: 450px; overflow: hidden;">
+                    <img src="https://acg.yaohud.cn/dm/acg.php?return=img" alt="随机图片"
+                        class="h-full w-auto object-cover transition-transform duration-500 hover:scale-105">
+                </div>
+
+                <!-- 联系方式卡片 -->
+                <div class="glass p-6 md:p-8 card-hover animate-slide-up"
+                    style="animation-delay: 0.4s; min-width: 300px;">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fa fa-link text-primary mr-2"></i>
+                        <span class="lang-zh">联系方式</span>
+                        <span class="lang-en hidden">Contact</span>
+                        <span class="lang-jp hidden">連絡先</span>
+                    </h3>
+
+                    <div class="space-y-4">
+                        <a href="https://api.cenguigui.cn/api/qq/links.php?qq=1018273986"
+                            class="flex items-center p-3 rounded-lg hover:bg-white/20 dark:hover:bg-dark-100/30 transition-all">
+                            <i class="fa fa-qq text-blue-500 text-xl w-8"></i>
+                            <span class="ml-3">1018273986</span>
+                        </a>
+                        <a href="#"
+                            class="flex items-center p-3 rounded-lg hover:bg-white/20 dark:hover:bg-dark-100/30 transition-all">
+                            <i class="fa fa-weixin text-green-500 text-xl w-8"></i>
+                            <span class="ml-3">AliLexiWalker</span>
+                        </a>
+                        <a href="https://gitee.com/BennyLaw" target="_blank"
+                            class="flex items-center p-3 rounded-lg hover:bg-white/20 dark:hover:bg-dark-100/30 transition-all">
+                            <i class="fa fa-git text-red-600 text-xl w-8"></i>
+                            <span class="ml-3">BennyLaw</span>
+                        </a>
+                        <a href="https://github.com/codeBennyLaw" target="_blank"
+                            class="flex items-center p-3 rounded-lg hover:bg-white/20 dark:hover:bg-dark-100/30 transition-all">
+                            <i class="fa fa-github text-gray-800 dark:text-gray-200 text-xl w-8"></i>
+                            <span class="ml-3">codeBennyLaw</span>
+                        </a>
+                        <a href="https://space.bilibili.com/1546503651" target="_blank"
+                            class="flex items-center p-3 rounded-lg hover:bg-white/20 dark:hover:bg-dark-100/30 transition-all">
+                            <i class="fa fa-play-circle text-pink-600 text-xl w-8"></i>
+                            <span class="ml-3">AliLexiWalker</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="glass mt-12 py-6 px-4 md:px-8">
+        <div class="container mx-auto text-center">
+            <div class="mb-3">
+                <span class="lang-zh">本站在Github上的部署时长：</span>
+                <span class="lang-en hidden">Deployment duration on Github:</span>
+                <span class="lang-jp hidden">Githubでのデプロイ期間：</span>
+                <span id="deploy-duration" class="font-mono"></span>
+            </div>
+            <p>
+                <span>AliLexiWalker © 2025</span>
+                <span class="mx-2">|</span>
+                <a href="https://github.com/codeBennyLaw/alilexiwalker" target="_blank"
+                    class="text-primary hover:underline">
+                    <span class="lang-zh">Github项目</span>
+                    <span class="lang-en hidden">Github Project</span>
+                    <span class="lang-jp hidden">Githubプロジェクト</span>
+                </a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // 全局配置：高德API密钥
+        const AMAP_API_KEY = "faec81c39b346f132e4eaa895abede18";
+        let cityAdcode = null;
+
+        // 页面加载完成后初始化所有功能
+        document.addEventListener('DOMContentLoaded', function () {
+            // 初始化侧边栏交互
+            initSidebar();
+
+            // 原有功能初始化
+            initTheme();
+            initLanguage();
+            updateTime();
+            setInterval(updateTime, 1000);
+            setBrowserInfo();
+            fetchIP().then(() => {
+                fetchWeather(cityAdcode || null);
+            });
+            animateSkillBars();
+            initInterestsChart();
+            updateDeployDuration();
+            setInterval(updateDeployDuration, 1000);
+
+            // 绑定事件
+            document.getElementById('lang-zh').addEventListener('click', () => setLanguage('zh'));
+            document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
+            document.getElementById('lang-jp').addEventListener('click', () => setLanguage('jp'));
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        });
+
+        // 初始化侧边栏交互
+        function initSidebar() {
+            const sidebar = document.getElementById('visitorSidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('sidebar-expanded');
+                // 切换图标
+                const icon = toggleBtn.querySelector('i');
+                if (sidebar.classList.contains('sidebar-expanded')) {
+                    icon.classList.remove('fa-users');
+                    icon.classList.add('fa-chevron-right');
+                } else {
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-users');
+                }
+            });
+        }
+
+        // 主题初始化
+        function initTheme() {
+            if (localStorage.getItem('theme') === 'dark' ||
+                (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        // 主题切换
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // 语言初始化
+        function initLanguage() {
+            const savedLang = localStorage.getItem('language') || 'zh';
+            setLanguage(savedLang);
+        }
+
+        // 语言切换
+        function setLanguage(lang) {
+            document.querySelectorAll('.lang-zh, .lang-en, .lang-jp').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll(`.lang-${lang}`).forEach(el => el.classList.remove('hidden'));
+            document.querySelectorAll('[id^="lang-"]').forEach(btn => btn.classList.remove('bg-primary/30'));
+            document.getElementById(`lang-${lang}`).classList.add('bg-primary/30');
+            localStorage.setItem('language', lang);
+            initInterestsChart();
+        }
+
+        // 时间更新
+        function updateTime() {
+            const now = new Date();
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            const lang = localStorage.getItem('language') || 'zh';
+            const locale = lang === 'en' ? 'en-US' : lang === 'jp' ? 'ja-JP' : 'zh-CN';
+            document.getElementById('current-time').textContent = now.toLocaleString(locale, options);
+        }
+
+        // 天气获取
+        function fetchWeather(adcode) {
+            const cityWeatherEl = document.getElementById('city-weather');
+            cityWeatherEl.textContent = "加载中...";
+            const requestUrl = adcode
+                ? `https://restapi.amap.com/v3/weather/weatherInfo?key=${AMAP_API_KEY}&city=${adcode}&extensions=base`
+                : `https://restapi.amap.com/v3/weather/weatherInfo?key=${AMAP_API_KEY}&city=ip&extensions=base`;
+
+            fetch(requestUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status !== "1") throw new Error(data.info || '未知错误');
+                    const { province, city, temperature, weather: condition, winddirection, windpower } = data.lives[0];
+                    const lang = localStorage.getItem('language') || 'zh';
+                    let weatherInfo;
+                    switch (lang) {
+                        case 'en': weatherInfo = `${city}, ${province} - ${temperature}°C, ${condition}, Wind: ${winddirection} ${windpower}`; break;
+                        case 'jp': weatherInfo = `${city}、${province} - ${temperature}℃、${condition}、風向: ${winddirection} ${windpower}`; break;
+                        default: weatherInfo = `${city}，${province} - ${temperature}℃，${condition}，风向${winddirection} ${windpower}级`;
+                    }
+                    cityWeatherEl.textContent = weatherInfo;
+                    document.getElementById('weather-icon').innerHTML = `<i class="fa fa-${getWeatherIcon(condition)} text-4xl"></i>`;
+                })
+                .catch(() => {
+                    const lang = localStorage.getItem('language') || 'zh';
+                    const errorMsg = { 'zh': '无法获取天气信息', 'en': 'Failed to get weather info', 'jp': '天気情報を取得できません' }[lang];
+                    cityWeatherEl.textContent = errorMsg;
+                });
+        }
+
+        // 天气图标映射
+        function getWeatherIcon(weatherText) {
+            const text = weatherText.toLowerCase();
+            if (text.includes('晴')) return 'sun-o text-yellow-500';
+            if (text.includes('多云')) return 'cloud-sun-o text-yellow-400';
+            if (text.includes('阴')) return 'cloud text-gray-400';
+            if (text.includes('雨') || text.includes('雷')) return 'tint text-blue-400';
+            if (text.includes('雪')) return 'snowflake-o text-blue-100';
+            if (text.includes('风')) return 'wind text-gray-500';
+            if (text.includes('雾') || text.includes('霾')) return 'smog text-gray-300';
+            if (text.includes('沙') || text.includes('尘')) return 'asterisk text-yellow-600';
+            return 'question-circle text-gray-500';
+        }
+
+        // 浏览器信息获取
+        function setBrowserInfo() {
+            const browserInfo = `${navigator.appName} ${navigator.appVersion} ${navigator.platform}`;
+            document.getElementById('browser-info').textContent = browserInfo;
+        }
+
+        // IP地址获取
+        function fetchIP() {
+            return new Promise((resolve) => {
+                const ipEl = document.getElementById('ip-address');
+                ipEl.textContent = 'IP: 加载中...';
+                fetch(`https://restapi.amap.com/v3/ip?key=${AMAP_API_KEY}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status !== "1") throw new Error();
+                        cityAdcode = data.adcode;
+                        const { ip = '未知IP', region = '未知地区', city = '未知城市' } = data;
+                        const lang = localStorage.getItem('language') || 'zh';
+                        const ipText = lang === 'en'
+                            ? `IP: ${ip} (${region}, ${city})`
+                            : lang === 'jp'
+                                ? `IP: ${ip}（${region}、${city}）`
+                                : `IP: ${ip}（${region}，${city}）`;
+                        ipEl.textContent = ipText;
+                    })
+                    .catch(() => {
+                        const lang = localStorage.getItem('language') || 'zh';
+                        const errorMsg = { 'zh': 'IP: 无法获取', 'en': 'IP: Unavailable', 'jp': 'IP: 取得できません' }[lang];
+                        ipEl.textContent = errorMsg;
+                    })
+                    .finally(resolve);
+            });
+        }
+
+        // 技能条动画
+        function animateSkillBars() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const bar = entry.target;
+                        bar.style.width = bar.getAttribute('data-width');
+                        observer.unobserve(bar);
+                    }
+                });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.skill-progress').forEach(bar => observer.observe(bar));
+        }
+
+        // 兴趣雷达图
+        function initInterestsChart() {
+            const ctx = document.getElementById('interests-chart').getContext('2d');
+            const lang = localStorage.getItem('language') || 'zh';
+            const labels = lang === 'en'
+                ? ['Programming', 'Music', 'Rhythm Games', 'Fitness', 'Running', 'Anime']
+                : lang === 'jp'
+                    ? ['プログラミング', '音楽', 'リズムゲーム', 'フィットネス', 'ランニング', 'アニメ']
+                    : ['编程', '音乐', '音游', '健身', '跑步', '二次元'];
+
+            if (window.interestsChart) window.interestsChart.destroy();
+
+            window.interestsChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '',
+                        data: [95, 80, 85, 70, 75, 90],
+                        backgroundColor: 'rgba(22, 93, 255, 0.2)',
+                        borderColor: 'rgba(22, 93, 255, 0.8)',
+                        pointBackgroundColor: 'rgba(22, 93, 255, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(22, 93, 255, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { display: false },
+                            grid: { color: document.documentElement.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' },
+                            angleLines: { color: document.documentElement.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' },
+                            pointLabels: { color: document.documentElement.classList.contains('dark') ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)', font: { size: 11 } }
+                        }
+                    },
+                    plugins: { legend: { display: false } },
+                    elements: { line: { borderWidth: 2 } },
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            const themeObserver = new MutationObserver(mutations => {
+                mutations.forEach(m => m.attributeName === 'class' && initInterestsChart());
+            });
+            themeObserver.observe(document.documentElement, { attributes: true });
+        }
+
+        // 部署时长计算
+        function updateDeployDuration() {
+            const deployStart = new Date(2025, 7, 5, 0, 0, 0).getTime();
+            const durationMs = new Date().getTime() - deployStart;
+            const days = Math.floor(durationMs / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((durationMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((durationMs % (1000 * 60)) / 1000);
+
+            const lang = localStorage.getItem('language') || 'zh';
+            const durationText = lang === 'en'
+                ? `${days}d ${hours}h ${minutes}m ${seconds}s`
+                : lang === 'jp'
+                    ? `${days}日 ${hours}時間 ${minutes}分 ${seconds}秒`
+                    : `${days}天 ${hours}时 ${minutes}分 ${seconds}秒`;
+
+            document.getElementById('deploy-duration').textContent = durationText;
+        }
+    </script>
+</body>
+
+</html>
